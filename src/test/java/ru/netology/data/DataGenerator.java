@@ -9,8 +9,8 @@ public class DataGenerator {
     private DataGenerator() {
     }
 
-    public static class OrderCard {
-        private OrderCard() {
+    public static class OrderInfo {
+        private OrderInfo() {
         }
 
         private static String getFullName(Faker faker) {
@@ -29,9 +29,8 @@ public class DataGenerator {
             return city;
         }
 
-        public static UserInfo generateByUserInfo(String Locale) {
+        public static UserInfo generateUserInfo(String Locale) {
             Faker faker = new Faker(new Locale(Locale));
-            faker.address().citySuffix();
             return new UserInfo(
                     getFullName(faker),
                     faker.numerify("+7##########"),
@@ -39,6 +38,9 @@ public class DataGenerator {
                     LocalDateTime.now().plusDays(3L + (long) (Math.random() * (360L - 7L)))
             );
         }
-    }
 
+        public static LocalDateTime generateOrderDate() {
+            return LocalDateTime.now().plusDays(3L + (long) (Math.random() * (360L - 7L)));
+        }
+    }
 }

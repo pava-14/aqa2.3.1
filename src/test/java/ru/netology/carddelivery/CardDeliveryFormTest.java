@@ -2,6 +2,7 @@ package ru.netology.carddelivery;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.Test;
 import ru.netology.data.DataGenerator;
@@ -13,17 +14,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.*;
 
 public class CardDeliveryFormTest {
-
-    private final UserInfo userInfo = DataGenerator.OrderCard.generateByUserInfo("ru");
     private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-
 
     private String getOrderDateEpochString(LocalDateTime dateTime) {
         Date dt = null;
@@ -39,8 +36,8 @@ public class CardDeliveryFormTest {
     data-step value:
             "-12" - year's left arrow
             "-1" - month's left arrow
-            "12" - year's right arrow "12"
-            "1" - month's right arrow "1"
+            "12" - year's right arrow
+            "1" - month's right arrow
     */
     private void calendarArrowClick(String dataStep) {
         $$(".calendar__arrow")
@@ -52,12 +49,12 @@ public class CardDeliveryFormTest {
         for (int i = 0; i < count; i++) calendarArrowClick(dataStep);
     }
 
-    private int getMonthArrowClickCount() {
-        return userInfo.getOrderDate().getMonth().getValue() - LocalDateTime.now().getMonth().getValue();
+    private int getMonthArrowClickCount(LocalDateTime orderDate, LocalDateTime currentDate) {
+        return orderDate.getMonth().getValue() - currentDate.getMonth().getValue();
     }
 
-    private int getYearArrowClickCount() {
-        return userInfo.getOrderDate().getYear() - LocalDateTime.now().getYear();
+    private int getYearArrowClickCount(LocalDateTime orderDate, LocalDateTime currentDate) {
+        return orderDate.getYear() - currentDate.getYear();
     }
 
     private void selectYearMonth(int yearArrowClickCount, int monthArrowClickCount) {
@@ -71,40 +68,18 @@ public class CardDeliveryFormTest {
     }
 
     @Test
-    public void shouldCreditCardDeliveryOrderByText() {
+    public void shouldCreditCardDeliveryReOrder() {
+        UserInfo userInfo = DataGenerator.OrderInfo.generateUserInfo("ru");
         open("http://localhost:9999");
 
         SelenideElement calendar = $(".calendar");
         SelenideElement element = $("form");
         element.$("[data-test-id=city] input").setValue(userInfo.getUserCity().substring(0,2));
         $(byText(userInfo.getUserCity())).click();
+
         element.$("[data-test-id=date] input").click();
-
-        selectYearMonth(getYearArrowClickCount(), getMonthArrowClickCount());
-
-        calendar.$(byText(String.valueOf(userInfo.getOrderDate().getDayOfMonth()))).click();
-        element.$("[data-test-id=name] input").setValue(userInfo.getUserName());
-        element.$("[data-test-id=phone] input").setValue(userInfo.getUserPhone());
-        element.$("[data-test-id=agreement]").click();
-        element.$$("button").find(exactText("Забронировать")).click();
-
-        $(withText("Успешно!")).waitUntil(visible, 15000);
-        $(byText("Встреча успешно забронирована на")).shouldBe(visible);
-        $(byText(dateFormat.format(userInfo.getOrderDate()))).shouldBe(visible);
-    }
-
-    @Test
-    public void shouldCreditCardDeliveryOrderByCss() {
-        open("http://localhost:9999");
-
-        SelenideElement calendar = $(".calendar");
-        SelenideElement element = $("form");
-        element.$("[data-test-id=city] input").setValue(userInfo.getUserCity().substring(0,2));
-        $(byText(userInfo.getUserCity())).click();
-        element.$("[data-test-id=date] input").click();
-
-        selectYearMonth(getYearArrowClickCount(), getMonthArrowClickCount());
-
+        selectYearMonth(getYearArrowClickCount(userInfo.getOrderDate(), LocalDateTime.now()),
+                getMonthArrowClickCount(userInfo.getOrderDate(), LocalDateTime.now()));
         ElementsCollection calendarRows = calendar.$$(".calendar__row .calendar__day");
         calendarRows.findBy(Condition.attribute("data-day",
                 getOrderDateEpochString(userInfo.getOrderDate()))).click();
@@ -112,10 +87,25 @@ public class CardDeliveryFormTest {
         element.$("[data-test-id=name] input").setValue(userInfo.getUserName());
         element.$("[data-test-id=phone] input").setValue(userInfo.getUserPhone());
         element.$("[data-test-id=agreement]").click();
-        element.$$("button").find(exactText("Забронировать")).click();
+        element.$$(".button").find(exactText("Запланировать")).click();
 
         $(withText("Успешно!")).waitUntil(visible, 15000);
-        $(byText("Встреча успешно забронирована на")).shouldBe(visible);
+        $(byText("Встреча успешно запланирована на")).shouldBe(visible);
         $(byText(dateFormat.format(userInfo.getOrderDate()))).shouldBe(visible);
+
+        element.$("[data-test-id=date] input").click();
+        LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate();
+        selectYearMonth(getYearArrowClickCount(reorderDate, userInfo.getOrderDate()),
+                getMonthArrowClickCount(reorderDate, userInfo.getOrderDate()));
+
+        calendar.$(byText(String.valueOf(reorderDate.getDayOfMonth()))).click();
+        element.$$("button").find(exactText("Запланировать")).click();
+
+        $(withText("Необходимо подтверждение")).waitUntil(visible, 15000);
+        $(byText("Перепланировать")).shouldBe(visible);
+        $$(".notification .button").find(exactText("Перепланировать")).click();
+        $(withText("Успешно!")).waitUntil(visible, 15000);
+        $(byText("Встреча успешно запланирована на")).shouldBe(visible);
+        $(byText(dateFormat.format(reorderDate))).shouldBe(visible);
     }
 }
