@@ -82,7 +82,7 @@ public class CardDeliveryFormTest {
                 getMonthArrowClickCount(userInfo.getOrderDate(), LocalDateTime.now()));
         ElementsCollection calendarRows = calendar.$$(".calendar__row .calendar__day");
         calendarRows.findBy(Condition.attribute("data-day",
-                getOrderDateEpochString(userInfo.getOrderDate()))).click();
+                getOrderDateEpochString(userInfo.getOrderDate()))).click(); //Find by CSS selector
 
         element.$("[data-test-id=name] input").setValue(userInfo.getUserName());
         element.$("[data-test-id=phone] input").setValue(userInfo.getUserPhone());
@@ -98,14 +98,14 @@ public class CardDeliveryFormTest {
         selectYearMonth(getYearArrowClickCount(reorderDate, userInfo.getOrderDate()),
                 getMonthArrowClickCount(reorderDate, userInfo.getOrderDate()));
 
-        calendar.$(byText(String.valueOf(reorderDate.getDayOfMonth()))).click();
+        calendar.$(byText(String.valueOf(reorderDate.getDayOfMonth()))).click(); //Just another way to find
         element.$$("button").find(exactText("Запланировать")).click();
 
         $(withText("Необходимо подтверждение")).waitUntil(visible, 15000);
         $(byText("Перепланировать")).shouldBe(visible);
         $$(".notification .button").find(exactText("Перепланировать")).click();
         $(withText("Успешно!")).waitUntil(visible, 15000);
-        $(byText("Встреча успешно не запланирована на")).shouldBe(visible);
+        $(byText("Встреча успешно запланирована на")).shouldBe(visible);
         $(byText(dateFormat.format(reorderDate))).shouldBe(visible);
     }
 }
