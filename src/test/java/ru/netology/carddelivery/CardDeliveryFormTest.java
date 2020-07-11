@@ -105,7 +105,7 @@ public class CardDeliveryFormTest {
         $(byText("Перепланировать")).shouldBe(visible);
         $$(".notification .button").find(exactText("Перепланировать")).click();
         $(withText("Успешно!")).waitUntil(visible, 15000);
-        $(byText("Встреча успешно запланирована на")).shouldBe(visible);
+        $(byText("Встреча успешно не запланирована на")).shouldBe(visible);
         $(byText(dateFormat.format(reorderDate))).shouldBe(visible);
     }
 }
