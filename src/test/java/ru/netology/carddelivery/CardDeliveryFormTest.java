@@ -81,8 +81,9 @@ public class CardDeliveryFormTest {
         selectYearMonth(getYearArrowClickCount(userInfo.getOrderDate(), LocalDateTime.now()),
                 getMonthArrowClickCount(userInfo.getOrderDate(), LocalDateTime.now()));
         ElementsCollection calendarRows = calendar.$$(".calendar__row .calendar__day");
+        //Find by CSS selector
         calendarRows.findBy(Condition.attribute("data-day",
-                getOrderDateEpochString(userInfo.getOrderDate()))).click(); //Find by CSS selector
+                getOrderDateEpochString(userInfo.getOrderDate()))).click();
 
         element.$("[data-test-id=name] input").setValue(userInfo.getUserName());
         element.$("[data-test-id=phone] input").setValue(userInfo.getUserPhone());
@@ -97,8 +98,8 @@ public class CardDeliveryFormTest {
         LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate();
         selectYearMonth(getYearArrowClickCount(reorderDate, userInfo.getOrderDate()),
                 getMonthArrowClickCount(reorderDate, userInfo.getOrderDate()));
-
-        calendar.$(byText(String.valueOf(reorderDate.getDayOfMonth()))).click(); //Just another way to find
+        //Just another way to find
+        calendar.$(byText(String.valueOf(reorderDate.getDayOfMonth()))).click();
         element.$$("button").find(exactText("Запланировать")).click();
 
         $(withText("Необходимо подтверждение")).waitUntil(visible, 15000);
