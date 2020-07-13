@@ -1,8 +1,6 @@
 package ru.netology.carddelivery;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.Test;
 import ru.netology.data.DataGenerator;
@@ -14,23 +12,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.*;
 
 public class CardDeliveryFormTest {
     private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-
-    private String getOrderDateEpochString(LocalDateTime dateTime) {
-        Date dt = null;
-        try {
-            dt = new SimpleDateFormat("dd.MM.yyyy").parse(dateFormat.format(dateTime));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return String.valueOf(dt.getTime());
-    }
 
     /*
     data-step value:
@@ -67,23 +56,23 @@ public class CardDeliveryFormTest {
         if (monthArrowClickCount > 0) arrowClick(monthArrowClickCount, "1");
     }
 
+    private void selectCalendarDate(LocalDateTime orderDate, LocalDateTime currentDate) {
+        selectYearMonth(getYearArrowClickCount(orderDate, currentDate),
+                getMonthArrowClickCount(orderDate, currentDate));
+        SelenideElement calendar = $(".calendar");
+        calendar.$(byText(String.valueOf(orderDate.getDayOfMonth()))).click();
+    }
+
     @Test
     public void shouldCreditCardDeliveryReOrder() {
         UserInfo userInfo = DataGenerator.OrderInfo.generateUserInfo("ru");
         open("http://localhost:9999");
 
-        SelenideElement calendar = $(".calendar");
         SelenideElement element = $("form");
-        element.$("[data-test-id=city] input").setValue(userInfo.getUserCity().substring(0,2));
+        element.$("[data-test-id=city] input").setValue(userInfo.getUserCity().substring(0, 2));
         $(byText(userInfo.getUserCity())).click();
-
         element.$("[data-test-id=date] input").click();
-        selectYearMonth(getYearArrowClickCount(userInfo.getOrderDate(), LocalDateTime.now()),
-                getMonthArrowClickCount(userInfo.getOrderDate(), LocalDateTime.now()));
-        ElementsCollection calendarRows = calendar.$$(".calendar__row .calendar__day");
-        //Find by CSS selector
-        calendarRows.findBy(Condition.attribute("data-day",
-                getOrderDateEpochString(userInfo.getOrderDate()))).click();
+        selectCalendarDate(userInfo.getOrderDate(), LocalDateTime.now());
 
         element.$("[data-test-id=name] input").setValue(userInfo.getUserName());
         element.$("[data-test-id=phone] input").setValue(userInfo.getUserPhone());
@@ -95,11 +84,8 @@ public class CardDeliveryFormTest {
         $(byText(dateFormat.format(userInfo.getOrderDate()))).shouldBe(visible);
 
         element.$("[data-test-id=date] input").click();
-        LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate();
-        selectYearMonth(getYearArrowClickCount(reorderDate, userInfo.getOrderDate()),
-                getMonthArrowClickCount(reorderDate, userInfo.getOrderDate()));
-        //Just another way to find
-        calendar.$(byText(String.valueOf(reorderDate.getDayOfMonth()))).click();
+        LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate("ru");
+        selectCalendarDate(reorderDate, userInfo.getOrderDate());
         element.$$("button").find(exactText("Запланировать")).click();
 
         $(withText("Необходимо подтверждение")).waitUntil(visible, 15000);
