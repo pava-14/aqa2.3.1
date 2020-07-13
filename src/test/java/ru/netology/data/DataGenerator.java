@@ -13,10 +13,22 @@ public class DataGenerator {
         private OrderInfo() {
         }
 
+        /*
+        Валидация поля на странице реализована с ошибкой
+         if (!/^[- А-Яа-я]+$/.test(name.trim())) {
+            setNameError('Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы.');
+            return;
+        }
+        Буква «ё» в кодировках расположена отдельно и её необходbимо
+        указывать явно: [- А-Яа-яёЁ]
+         */
         private static String getFullName(Faker faker) {
             String fullName = faker.name().fullName();
-            while (fullName.contains("ё") || fullName.contains("Ё")) {
-                fullName = faker.name().fullName();
+            if(fullName.contains("ё")) {
+                fullName = fullName.replace("ё","е");
+            }
+            if(fullName.contains("Ё")) {
+                fullName = fullName.replace("Ё","Е");
             }
             return fullName;
         }
