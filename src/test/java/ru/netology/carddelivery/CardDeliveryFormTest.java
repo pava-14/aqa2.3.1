@@ -6,11 +6,8 @@ import org.junit.jupiter.api.Test;
 import ru.netology.data.DataGenerator;
 import ru.netology.data.UserInfo;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.visible;
@@ -54,7 +51,8 @@ public class CardDeliveryFormTest {
             return;
         }
 
-        if (yearArrowClickCount < 0 && Math.abs(yearArrowClickCount) > 1) arrowClick(Math.abs(yearArrowClickCount), "-12");
+        if (yearArrowClickCount < 0 && Math.abs(yearArrowClickCount) > 1)
+            arrowClick(Math.abs(yearArrowClickCount), "-12");
         if (yearArrowClickCount > 0) arrowClick(yearArrowClickCount, "12");
 
         if (monthArrowClickCount < 0) arrowClick(Math.abs(monthArrowClickCount), "-1");
@@ -77,10 +75,7 @@ public class CardDeliveryFormTest {
         element.$("[data-test-id=city] input").setValue(userInfo.getUserCity().substring(0, 2));
         $(byText(userInfo.getUserCity())).click();
         element.$("[data-test-id=date] input").click();
-        //TEST
-        LocalDateTime tempOrderdate = LocalDateTime.of(2021, 1, 1,12,12,12);
-        selectCalendarDate(tempOrderdate, LocalDateTime.now());
-//        selectCalendarDate(userInfo.getOrderDate(), LocalDateTime.now());
+        selectCalendarDate(userInfo.getOrderDate(), LocalDateTime.now());
 
         element.$("[data-test-id=name] input").setValue(userInfo.getUserName());
         element.$("[data-test-id=phone] input").setValue(userInfo.getUserPhone());
@@ -89,15 +84,11 @@ public class CardDeliveryFormTest {
 
         $(withText("Успешно!")).waitUntil(visible, 15000);
         $(byText("Встреча успешно запланирована на")).shouldBe(visible);
-        $(byText(dateFormat.format(tempOrderdate))).shouldBe(visible);
-//        $(byText(dateFormat.format(userInfo.getOrderDate()))).shouldBe(visible);
+        $(byText(dateFormat.format(userInfo.getOrderDate()))).shouldBe(visible);
 
         element.$("[data-test-id=date] input").click();
-//        LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate("ru");
-        //TEST
-        LocalDateTime reorderDate = LocalDateTime.of(2020, 7, 17,12,12,12);
-//        selectCalendarDate(reorderDate, userInfo.getOrderDate());
-        selectCalendarDate(reorderDate, tempOrderdate);
+        LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate("ru");
+        selectCalendarDate(reorderDate, userInfo.getOrderDate());
 
         element.$$("button").find(exactText("Запланировать")).click();
 
