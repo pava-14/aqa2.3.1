@@ -46,10 +46,15 @@ public class CardDeliveryFormTest {
         return orderDate.getYear() - currentDate.getYear();
     }
 
-    private void selectYearMonth(int yearArrowClickCount, int monthArrowClickCount) {
+    private void selectYearMonth(int yearArrowClickCount, int monthArrowClickCount, int newMonth, int currentMonth) {
         if (yearArrowClickCount == 0 && monthArrowClickCount == 0) return;
 
-        if (yearArrowClickCount < 0) arrowClick(Math.abs(yearArrowClickCount), "-12");
+        if (yearArrowClickCount < 0 && Math.abs(yearArrowClickCount) == 1) {
+            arrowClick(12 - newMonth + currentMonth, "-1");
+            return;
+        }
+
+        if (yearArrowClickCount < 0 && Math.abs(yearArrowClickCount) > 1) arrowClick(Math.abs(yearArrowClickCount), "-12");
         if (yearArrowClickCount > 0) arrowClick(yearArrowClickCount, "12");
 
         if (monthArrowClickCount < 0) arrowClick(Math.abs(monthArrowClickCount), "-1");
@@ -58,7 +63,7 @@ public class CardDeliveryFormTest {
 
     private void selectCalendarDate(LocalDateTime orderDate, LocalDateTime currentDate) {
         selectYearMonth(getYearArrowClickCount(orderDate, currentDate),
-                getMonthArrowClickCount(orderDate, currentDate));
+                getMonthArrowClickCount(orderDate, currentDate), orderDate.getMonthValue(), currentDate.getMonthValue());
         SelenideElement calendar = $(".calendar");
         calendar.$(byText(String.valueOf(orderDate.getDayOfMonth()))).click();
     }
@@ -72,7 +77,10 @@ public class CardDeliveryFormTest {
         element.$("[data-test-id=city] input").setValue(userInfo.getUserCity().substring(0, 2));
         $(byText(userInfo.getUserCity())).click();
         element.$("[data-test-id=date] input").click();
-        selectCalendarDate(userInfo.getOrderDate(), LocalDateTime.now());
+        //TEST
+        LocalDateTime tempOrderdate = LocalDateTime.of(2021, 1, 1,12,12,12);
+        selectCalendarDate(tempOrderdate, LocalDateTime.now());
+//        selectCalendarDate(userInfo.getOrderDate(), LocalDateTime.now());
 
         element.$("[data-test-id=name] input").setValue(userInfo.getUserName());
         element.$("[data-test-id=phone] input").setValue(userInfo.getUserPhone());
@@ -81,11 +89,16 @@ public class CardDeliveryFormTest {
 
         $(withText("Успешно!")).waitUntil(visible, 15000);
         $(byText("Встреча успешно запланирована на")).shouldBe(visible);
-        $(byText(dateFormat.format(userInfo.getOrderDate()))).shouldBe(visible);
+        $(byText(dateFormat.format(tempOrderdate))).shouldBe(visible);
+//        $(byText(dateFormat.format(userInfo.getOrderDate()))).shouldBe(visible);
 
         element.$("[data-test-id=date] input").click();
-        LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate("ru");
-        selectCalendarDate(reorderDate, userInfo.getOrderDate());
+//        LocalDateTime reorderDate = DataGenerator.OrderInfo.generateOrderDate("ru");
+        //TEST
+        LocalDateTime reorderDate = LocalDateTime.of(2020, 7, 17,12,12,12);
+//        selectCalendarDate(reorderDate, userInfo.getOrderDate());
+        selectCalendarDate(reorderDate, tempOrderdate);
+
         element.$$("button").find(exactText("Запланировать")).click();
 
         $(withText("Необходимо подтверждение")).waitUntil(visible, 15000);
